@@ -72,12 +72,14 @@ def load_trained_model(antennas, lat_dim, n_epochs):
     criterion = torch.nn.MSELoss()
     
     model.train()
+    loss_history = []
     for epoch in range(n_epochs):
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, data)
         loss.backward()
         optimizer.step()
+        loss_history.append(loss.item())
         
     model.eval()
     return model, data
@@ -109,3 +111,39 @@ axes[1].set_title("Reconstructed Channel Matrix H_hat (Real)")
 fig.colorbar(im1, ax=axes[1])
 
 st.pyplot(fig)
+
+##Training Loss Curve
+
+st.markdown("### 📈 Training Loss Curve")
+fig_loss, ax_loss = plt.subplots(figsize=(8, 3))
+if "loss_history" in locals() and len(loss_history) > 0:
+    ax_loss.plot(range(1, len(loss_history) + 1), loss_history, marker='o', color='purple', linewidth=2)
+    ax_loss.set_title("Training Loss Over Epochs")
+    ax_loss.set_xlabel("Epoch")
+    ax_loss.set_ylabel("MSE Loss")
+    ax_loss.grid(True)
+    st.pyplot(fig_loss)
+else: 
+    st.info("Loss history is not available (Load it from the model training script or a saved loss list).")
+
+#NMSE vs Latent Dimension Curve
+st.markdown("### 📊 NMSE vs. Latent Dimension (Compression Trade-off)")
+latent_dims = [16, 32, 64, 128]
+nmse_values = []
+
+for ld in latent_dims:
+    temp_model = CsiAutoencoder(num_antennas=num_antennas, latent_dim=ld)
+    with torch.no_grad():
+        temp_recon = temp_model(test_sample)
+    orig_t = test_sample.numpy()
+    recon_t = temp_recon.detach().numpy()
+    val_nmse = np.linalg.norm(orig_t - recon_t)**2 / np.linalg.norm(orig_t)**2
+    nmse_values.append(10 * np.log10(val_nmse + 1e-8))
+
+fig_nmse, ax_nmse = plt.subplots(figsize=(8, 3))
+ax_nmse.plot(latent_dims, nmse_values, marker='s', color='teal', linewidth=2)
+ax_nmse.set_title("Reconstruction Performance vs. Latent Dimension")
+ax_nmse.set_xlabel("Latent Dimension (K)")
+ax_nmse.set_ylabel("NMSE (dB)")
+ax_nmse.grid(True)
+st.pyplot(fig_nmse)
