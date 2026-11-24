@@ -20,5 +20,5 @@ An advanced Streamlit-based web application designed to compress Channel State I
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/csi_mimo_project.git](https://github.com/YOUR_USERNAME/csi_mimo_project.git)
+   git clone [https://github.com/YOUR_USERNAME/csi_mimo_project.git](https://github.com/gopals09920/csi_mimo_project.git)
    cd csi_mimo_project
